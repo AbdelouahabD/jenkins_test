@@ -1,9 +1,5 @@
 pipeline {
-    agent {
-        docker {
-            image 'python:3.13'
-        }
-    }
+    agent any
 
     stages {
         stage('Install Dependencies') {
@@ -50,6 +46,9 @@ pipeline {
     post {
         failure {
             echo 'Build failed due to errors or vulnerabilities'
+        }
+        always {
+            echo 'Cleaning up...'
         }
     }
 }
