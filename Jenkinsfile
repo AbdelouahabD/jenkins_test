@@ -14,18 +14,23 @@ pipeline {
             }
         }
 
-        stage('SCA Scan') {
-            steps {
-                sh '''
-                dependency-check.sh \
-                  --project "TP-Jenkins" \
-                  --scan . \
-                  --format HTML \
-                  --out dependency-check-report \
-                  --failOnCVSS 7
-                '''
-            }
+stage('SCA Scan') {
+    steps {
+        sh '''
+        dependency-check.sh \
+          --project "TP-Jenkins" \
+          --scan . \
+          --format HTML \
+          --out dependency-check-report \
+          --failOnCVSS 7
+        '''
+    }
+    post {
+        always {
+            archiveArtifacts artifacts: 'dependency-check-report/**', fingerprint: true
         }
+    }
+}
 
         stage('SAST Scan') {
             steps {
