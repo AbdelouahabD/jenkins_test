@@ -16,7 +16,14 @@ pipeline {
 
         stage('SCA Scan') {
             steps {
-                sh 'dependency-check.sh --project "TP-Jenkins" --scan . --format HTML'
+                sh '''
+                dependency-check.sh \
+                  --project "TP-Jenkins" \
+                  --scan . \
+                  --format HTML \
+                  --out dependency-check-report \
+                  --failOnCVSS 7
+                '''
             }
         }
 
