@@ -2,10 +2,19 @@ pipeline {
     agent any
 
     stages {
+        stage('Clean Workspace') {
+            steps {
+                deleteDir()
+            }
+        }
 
         stage('Install Dependencies') {
             steps {
-                sh 'python3 -m pip install --break-system-packages -r requirements.txt'
+                sh '''
+                python3 -m pip install --upgrade pip
+                python3 -m pip install -r requirements.txt
+                python3 -m pip install pytest semgrep
+                '''
             }
         }
 
@@ -15,56 +24,34 @@ pipeline {
             }
         }
 
-        stage('Python Dependency Scan (pip-audit)') {
-            steps {
-                sh '''
-                python3 -m venv audit-venv
-                . audit-venv/bin/activate
-                pip install --upgrade pip
-                pip install pip-audit
-                pip-audit -r requirements.txt || true
-                '''
-            }
-        }
-
-        stage('SCA Scan (Dependency-Check)') {
+        stage('SCA Scan') {
             steps {
                 script {
                     def dcTool = tool 'dependency-check'
-                    sh "${dcTool}/bin/dependency-check.sh --project 'TP-Jenkins' --scan . --format HTML --out dependency-check-report --failOnCVSS 7"
-                }
-            }
-            post {
-                always {
-                    archiveArtifacts artifacts: 'dependency-check-report/**', fingerprint: true
+                    sh """
+                    ${dcTool}/bin/dependency-check.sh \
+                    --project 'TP-Jenkins' \
+                    --scan . \
+                    --exclude './audit-venv/**' \
+                    --exclude './dependency-check-report/**' \
+                    --format HTML \
+                    --out dependency-check-report \
+                    --failOnCVSS 7
+                    """
                 }
             }
         }
 
-        stage('SAST Scan (SonarCloud)') {
+        stage('SAST Scan') {
             steps {
-                script {
-                    def scannerHome = tool 'sonar-scanner'
-                    withSonarQubeEnv('SonarCloud') {
-                        sh """
-                        ${scannerHome}/bin/sonar-scanner \
-                        -Dsonar.projectKey=abdelouahabd_jenkins_test \
-                        -Dsonar.organization=abdelouahabd \
-                        -Dsonar.sources=. \
-                        -Dsonar.host.url=https://sonarcloud.io \
-                        -Dsonar.exclusions=dependency-check-report/** \
-                        -Dsonar.python.version=3.13
-                        """
-                    }
-                }
+                sh 'semgrep scan --config auto . || true'
             }
         }
-
     }
 
     post {
         always {
-            echo 'Cleaning up...'
+            archiveArtifacts artifacts: 'dependency-check-report/**', fingerprint: true
         }
         failure {
             echo 'Build failed due to errors or vulnerabilities'
