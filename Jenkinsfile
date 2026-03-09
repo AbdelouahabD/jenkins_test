@@ -16,8 +16,13 @@ pipeline {
 
         stage('Python Dependency Scan') {
             steps {
-                sh 'python3 -m pip install --break-system-packages pip-audit'
-                sh 'python3 -m pip_audit -r requirements.txt'
+                sh '''
+                python3 -m venv audit-venv
+                . audit-venv/bin/activate
+                pip install --upgrade pip
+                pip install pip-audit
+                pip-audit -r requirements.txt
+                '''
             }
         }
 
