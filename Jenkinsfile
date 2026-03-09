@@ -18,7 +18,7 @@ pipeline {
             steps {
                 script {
                     def dcTool = tool 'dependency-check'
-                    sh "${dcTool}/bin/dependency-check.sh --project 'TP-Jenkins' --scan . --format HTML --out dependency-check-report --failOnCVSS 7"
+                    sh "${dcTool}/bin/dependency-check.sh --project 'TP-Jenkins' --scan . --format HTML --out dependency-check-report --failOnCVSS 0"
                 }
             }
             post {
