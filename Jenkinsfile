@@ -16,14 +16,10 @@ pipeline {
 
         stage('SCA Scan') {
             steps {
-                sh '''
-                dependency-check.sh \
-                  --project "TP-Jenkins" \
-                  --scan . \
-                  --format HTML \
-                  --out dependency-check-report \
-                  --failOnCVSS 7
-                '''
+                script {
+                    def dcTool = tool 'dependency-check'
+                    sh "${dcTool}/bin/dependency-check.sh --project 'TP-Jenkins' --scan . --format HTML --out dependency-check-report --failOnCVSS 7"
+                }
             }
             post {
                 always {
@@ -34,7 +30,12 @@ pipeline {
 
         stage('SAST Scan') {
             steps {
-                sh 'sonar-scanner'
+                script {
+                    def scannerHome = tool 'sonar-scanner'
+                    withSonarQubeEnv('SonarCloud') {
+                        sh "${scannerHome}/bin/sonar-scanner"
+                    }
+                }
             }
         }
     }
