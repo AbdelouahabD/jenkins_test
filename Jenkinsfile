@@ -31,7 +31,6 @@ pipeline {
                     ${dcTool}/bin/dependency-check.sh \
                     --project 'TP-Jenkins' \
                     --scan . \
-                    --exclude './venv/**' \
                     --exclude './sast-venv/**' \
                     --exclude './dependency-check-report/**' \
                     --format HTML \
