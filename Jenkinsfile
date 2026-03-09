@@ -4,18 +4,13 @@ pipeline {
     stages {
         stage('Install Dependencies') {
             steps {
-                sh '''
-                    apt-get update && apt-get install -y python3-venv
-                    python3 -m venv venv
-                    ./venv/bin/pip install --upgrade pip
-                    ./venv/bin/pip install -r requirements.txt
-                '''
+                sh 'python3 -m pip install --break-system-packages -r requirements.txt'
             }
         }
 
         stage('Run Tests') {
             steps {
-                sh './venv/bin/pytest'
+                sh 'python3 -m pytest'
             }
         }
 
