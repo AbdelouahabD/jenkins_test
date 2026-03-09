@@ -2,6 +2,7 @@ pipeline {
     agent any
 
     stages {
+
         stage('Install Dependencies') {
             steps {
                 sh 'python3 -m pip install --break-system-packages -r requirements.txt'
@@ -14,7 +15,7 @@ pipeline {
             }
         }
 
-        stage('Python Dependency Scan') {
+        stage('Python Dependency Scan (pip-audit)') {
             steps {
                 sh '''
                 python3 -m venv audit-venv
@@ -26,7 +27,7 @@ pipeline {
             }
         }
 
-        stage('SCA Scan') {
+        stage('SCA Scan (Dependency-Check)') {
             steps {
                 script {
                     def dcTool = tool 'dependency-check'
@@ -40,22 +41,25 @@ pipeline {
             }
         }
 
-        stage('SAST Scan') {
+        stage('SAST Scan (SonarCloud)') {
             steps {
                 script {
                     def scannerHome = tool 'sonar-scanner'
                     withSonarQubeEnv('SonarCloud') {
-                        sh "${scannerHome}/bin/sonar-scanner \
-                            -Dsonar.projectKey=abdelouahabd_jenkins_test \
-                            -Dsonar.organization=abdelouahabd \
-                            -Dsonar.sources=. \
-                            -Dsonar.host.url=https://sonarcloud.io \
-                            -Dsonar.exclusions=dependency-check-report/** \
-                            -Dsonar.python.version=3.13"
+                        sh """
+                        ${scannerHome}/bin/sonar-scanner \
+                        -Dsonar.projectKey=abdelouahabd_jenkins_test \
+                        -Dsonar.organization=abdelouahabd \
+                        -Dsonar.sources=. \
+                        -Dsonar.host.url=https://sonarcloud.io \
+                        -Dsonar.exclusions=dependency-check-report/** \
+                        -Dsonar.python.version=3.13
+                        """
                     }
                 }
             }
         }
+
     }
 
     post {
