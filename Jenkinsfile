@@ -14,11 +14,18 @@ pipeline {
             }
         }
 
+        stage('Python Dependency Scan') {
+            steps {
+                sh 'python3 -m pip install --break-system-packages pip-audit'
+                sh 'python3 -m pip_audit -r requirements.txt'
+            }
+        }
+
         stage('SCA Scan') {
             steps {
                 script {
                     def dcTool = tool 'dependency-check'
-                    sh "${dcTool}/bin/dependency-check.sh --project 'TP-Jenkins' --scan . --format HTML --out dependency-check-report --failOnCVSS 0"
+                    sh "${dcTool}/bin/dependency-check.sh --project 'TP-Jenkins' --scan . --format HTML --out dependency-check-report --failOnCVSS 7"
                 }
             }
             post {
@@ -37,7 +44,9 @@ pipeline {
                             -Dsonar.projectKey=abdelouahabd_jenkins_test \
                             -Dsonar.organization=abdelouahabd \
                             -Dsonar.sources=. \
-                            -Dsonar.host.url=https://sonarcloud.io"
+                            -Dsonar.host.url=https://sonarcloud.io \
+                            -Dsonar.exclusions=dependency-check-report/** \
+                            -Dsonar.python.version=3.13"
                     }
                 }
             }
