@@ -33,7 +33,11 @@ pipeline {
                 script {
                     def scannerHome = tool 'sonar-scanner'
                     withSonarQubeEnv('SonarCloud') {
-                        sh "${scannerHome}/bin/sonar-scanner"
+                        sh "${scannerHome}/bin/sonar-scanner \
+                            -Dsonar.projectKey=abdelouahabd_jenkins_test \
+                            -Dsonar.organization=abdelouahabd \
+                            -Dsonar.sources=. \
+                            -Dsonar.host.url=https://sonarcloud.io"
                     }
                 }
             }
