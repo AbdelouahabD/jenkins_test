@@ -2,14 +2,14 @@ pipeline {
     agent any
 
     stages {
-        stage('Install Dependencies') {
+        stage('Install App Dependencies') {
             steps {
                 sh '''
                 python3 -m venv venv
                 . venv/bin/activate
                 pip install --upgrade pip
                 pip install -r requirements.txt
-                pip install pytest semgrep
+                pip install pytest
                 '''
             }
         }
@@ -32,6 +32,7 @@ pipeline {
                     --project 'TP-Jenkins' \
                     --scan . \
                     --exclude './venv/**' \
+                    --exclude './sast-venv/**' \
                     --exclude './dependency-check-report/**' \
                     --format HTML \
                     --out dependency-check-report \
@@ -44,8 +45,11 @@ pipeline {
         stage('SAST Scan') {
             steps {
                 sh '''
-                . venv/bin/activate
-                semgrep scan --config auto . || true
+                python3 -m venv sast-venv
+                . sast-venv/bin/activate
+                pip install --upgrade pip
+                pip install semgrep
+                semgrep scan --config auto --exclude venv --exclude sast-venv --exclude dependency-check-report .
                 '''
             }
         }
