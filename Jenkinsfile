@@ -9,7 +9,7 @@ pipeline {
                 . venv/bin/activate
                 pip install --upgrade pip
                 pip install -r requirements.txt
-                pip install pytest pip-audit
+                pip install pytest
                 '''
             }
         }
@@ -26,7 +26,10 @@ pipeline {
         stage('SCA Scan (pip-audit)') {
             steps {
                 sh '''
-                . venv/bin/activate
+                python3 -m venv audit-venv
+                . audit-venv/bin/activate
+                pip install --upgrade pip
+                pip install pip-audit
                 pip-audit -r requirements.txt
                 '''
             }
@@ -41,6 +44,7 @@ pipeline {
                     --project 'TP-Jenkins' \
                     --scan . \
                     --exclude './venv/**' \
+                    --exclude './audit-venv/**' \
                     --exclude './sast-venv/**' \
                     --exclude './dependency-check-report/**' \
                     --format HTML \
@@ -57,7 +61,7 @@ pipeline {
                 . sast-venv/bin/activate
                 pip install --upgrade pip
                 pip install semgrep
-                semgrep scan --config auto --exclude venv --exclude sast-venv --exclude dependency-check-report .
+                semgrep scan --config auto --exclude venv --exclude audit-venv --exclude sast-venv --exclude dependency-check-report .
                 '''
             }
         }
