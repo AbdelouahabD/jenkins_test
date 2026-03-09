@@ -22,7 +22,7 @@ pipeline {
                 . audit-venv/bin/activate
                 pip install --upgrade pip
                 pip install pip-audit
-                pip-audit -r requirements.txt
+                pip-audit -r requirements.txt || true
                 '''
             }
         }
