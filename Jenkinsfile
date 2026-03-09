@@ -9,7 +9,7 @@ pipeline {
                 . venv/bin/activate
                 pip install --upgrade pip
                 pip install -r requirements.txt
-                pip install pytest
+                pip install pytest pip-audit
                 '''
             }
         }
@@ -23,7 +23,16 @@ pipeline {
             }
         }
 
-        stage('SCA Scan') {
+        stage('SCA Scan (pip-audit)') {
+            steps {
+                sh '''
+                . venv/bin/activate
+                pip-audit -r requirements.txt
+                '''
+            }
+        }
+
+        stage('SCA Scan (Dependency-Check)') {
             steps {
                 script {
                     def dcTool = tool 'dependency-check'
@@ -31,11 +40,11 @@ pipeline {
                     ${dcTool}/bin/dependency-check.sh \
                     --project 'TP-Jenkins' \
                     --scan . \
+                    --exclude './venv/**' \
                     --exclude './sast-venv/**' \
                     --exclude './dependency-check-report/**' \
                     --format HTML \
-                    --out dependency-check-report \
-                    --failOnCVSS 7
+                    --out dependency-check-report
                     """
                 }
             }
